@@ -3,13 +3,14 @@
 
 void DHT_ToPost(char *buffer, SampleDHT sample, char *endpoint, char *host)
 {
-	memset(buffer, 0, POST_LENGTH);
-	char json[JSON_LENGTH] = {"\0"};
-    snprintf(json, JSON_LENGTH,
+	char json[DHT_JSON_LENGTH] = {"\0"};
+    snprintf(json, DHT_JSON_LENGTH,
     		 "{\"station_id\":%d,\"RH\":%.1f,\"T_C\":%.1f,\"T_F\":%.1f,\"HI_C\":%.1f,\"HI_F\":%.1f}",
 			 sample.station_id, sample.humidity, sample.temperature_celsius, sample.temperature_fahrenheit,
 			 sample.heat_index_celsius, sample.heat_index_fahrenheit);
-    snprintf(buffer, POST_LENGTH,
+
+    memset(buffer, 0, DHT_POST_LENGTH);
+    snprintf(buffer, DHT_POST_LENGTH,
     		 "POST %s HTTP/1.1\r\n"
     		 "Host: %s\r\n"
     		 "Content-Type: application/json\r\n"
@@ -17,6 +18,16 @@ void DHT_ToPost(char *buffer, SampleDHT sample, char *endpoint, char *host)
     		 "\r\n"
     		 "%s\r\n"
     		 "\r\n", endpoint, host, strlen(json), json);
+}
+
+
+void DHT_ToJson_Partial(char *buffer, SampleDHT sample)
+{
+	memset(buffer, 0, 100);
+	snprintf(buffer, 100,
+	         "\"station_id\":%d,\"RH\":%.1f,\"T_C\":%.1f,\"T_F\":%.1f,\"HI_C\":%.1f,\"HI_F\":%.1f",
+			 sample.station_id, sample.humidity, sample.temperature_celsius, sample.temperature_fahrenheit,
+			 sample.heat_index_celsius, sample.heat_index_fahrenheit);
 }
 
 

@@ -1,30 +1,31 @@
 #include "fc37.h"
 
+FC37_t fc37;
 
-void FC37_Init(FC37_HandleTypeDef *hfc37)
+void FC37_Init()
 {
-	hfc37->rain_intensity = RAIN_INTENSITY_NONE;
-	hfc37->raw_value = 0;
+	fc37.rain_intensity = RAIN_INTENSITY_NONE;
+	fc37.raw_value = 0;
 }
 
 
-void FC37_AssessRain(FC37_HandleTypeDef *hfc37)
+void FC37_Sample()
 {
-	if (hfc37->raw_value > THRESHOLD_RAIN_LIGHT)
-		hfc37->rain_intensity = RAIN_INTENSITY_NONE;
-	else if (hfc37->raw_value > THRESHOLD_RAIN_MODERATE)
-		hfc37->rain_intensity = RAIN_INTENSITY_LIGHT;
-	else if (hfc37->raw_value > THRESHOLD_RAIN_MODERATE)
-		hfc37->rain_intensity = RAIN_INTENSITY_MODERATE;
+	if (fc37.raw_value > THRESHOLD_RAIN_LIGHT)
+		fc37.rain_intensity = RAIN_INTENSITY_NONE;
+	else if (fc37.raw_value > THRESHOLD_RAIN_MODERATE)
+		fc37.rain_intensity = RAIN_INTENSITY_LIGHT;
+	else if (fc37.raw_value > THRESHOLD_RAIN_MODERATE)
+		fc37.rain_intensity = RAIN_INTENSITY_MODERATE;
 	else
-		hfc37->rain_intensity = RAIN_INTENSITY_HEAVY;
+		fc37.rain_intensity = RAIN_INTENSITY_HEAVY;
 }
 
 
-void FC37_ToJson_Partial(char *buffer, FC37_HandleTypeDef *hfc37)
+void FC37_ToJson_Partial(char *buffer)
 {
 	memset(buffer, 0, FC37_JSON_LENGTH);
-	snprintf(buffer, FC37_JSON_LENGTH, "\"rain\":\"%c\"", _tochar_rain_intensity(hfc37->rain_intensity));
+	snprintf(buffer, FC37_JSON_LENGTH, "\"FC37\":{\"rain\":\"%c\"}", _tochar_rain_intensity(fc37.rain_intensity));
 }
 
 
@@ -32,14 +33,20 @@ char _tochar_rain_intensity(uint8_t intensity)
 {
 	switch (intensity) {
 	case RAIN_INTENSITY_NONE:
-		return 'N';
+		return RAIN_NONE_MESSAGE;
 	case RAIN_INTENSITY_LIGHT:
-		return 'L';
+		return RAIN_LIGHT_MESSAGE;
 	case RAIN_INTENSITY_MODERATE:
-		return 'M';
+		return RAIN_MODERATE_MESSAGE;
 	case RAIN_INTENSITY_HEAVY:
-		return 'H';
+		return RAIN_HEAVY_MESSAGE;
 	default:
-		return 'N';
+		return RAIN_NONE_MESSAGE;
 	}
+}
+
+
+void FC37_SetRawValue(uint16_t raw_value)
+{
+	fc37.raw_value = raw_value;
 }

@@ -1,13 +1,25 @@
 #include "dht.h"
 
+DHT_t dht;
 
-void DHT_ToPost(char *buffer, SampleDHT sample, char *endpoint, char *host)
+void DHT_Init(uint8_t station_id)
+{
+	dht.heat_index_celsius = 0.0;
+	dht.heat_index_fahrenheit = 0.0;
+	dht.humidity = 0.0;
+	dht.station_id = station_id;
+	dht.temperature_celsius = 0.0;
+	dht.temperature_fahrenheit = 0.0;
+}
+
+
+void DHT_ToPost(char *buffer, char *endpoint, char *host)
 {
 	char json[DHT_JSON_LENGTH] = {"\0"};
     snprintf(json, DHT_JSON_LENGTH,
-    		 "{\"station_id\":%d,\"RH\":%.1f,\"T_C\":%.1f,\"T_F\":%.1f,\"HI_C\":%.1f,\"HI_F\":%.1f}",
-			 sample.station_id, sample.humidity, sample.temperature_celsius, sample.temperature_fahrenheit,
-			 sample.heat_index_celsius, sample.heat_index_fahrenheit);
+    		 "{\"DHT\":{\"station_id\":%d,\"RH\":%.1f,\"T_C\":%.1f,\"T_F\":%.1f,\"HI_C\":%.1f,\"HI_F\":%.1f}}",
+			 dht.station_id, dht.humidity, dht.temperature_celsius, dht.temperature_fahrenheit,
+			 dht.heat_index_celsius, dht.heat_index_fahrenheit);
 
     memset(buffer, 0, DHT_POST_LENGTH);
     snprintf(buffer, DHT_POST_LENGTH,
@@ -21,17 +33,23 @@ void DHT_ToPost(char *buffer, SampleDHT sample, char *endpoint, char *host)
 }
 
 
-void DHT_ToJson_Partial(char *buffer, SampleDHT sample)
+void DHT_ToJson_Partial(char *buffer)
 {
-	memset(buffer, 0, 100);
-	snprintf(buffer, 100,
-	         "\"station_id\":%d,\"RH\":%.1f,\"T_C\":%.1f,\"T_F\":%.1f,\"HI_C\":%.1f,\"HI_F\":%.1f",
-			 sample.station_id, sample.humidity, sample.temperature_celsius, sample.temperature_fahrenheit,
-			 sample.heat_index_celsius, sample.heat_index_fahrenheit);
+	memset(buffer, 0, DHT_JSON_LENGTH);
+	snprintf(buffer, DHT_JSON_LENGTH,
+	         "\"DHT\":{"
+	         "\"station_id\":%d,"
+	         "\"RH\":%.1f,"
+	         "\"T_C\":%.1f,"
+	         "\"T_F\":%.1f,"
+	         "\"HI_C\":%.1f,"
+	         "\"HI_F\":%.1f}",
+			 dht.station_id, dht.humidity, dht.temperature_celsius,
+			 dht.temperature_fahrenheit, dht.heat_index_celsius, dht.heat_index_fahrenheit);
 }
 
 
-SampleDHT DHT_Sample()
+void DHT_Sample()
 {
 	uint8_t buffer[DHT_N_BYTES] = {0};
 
@@ -59,15 +77,11 @@ SampleDHT DHT_Sample()
 		heat_index_fahrenheit = calculate_heat_index_fahrenheit(temperature_fahrenheit, humidity);
 	}
 
-	SampleDHT sample = {
-		.station_id = 1,
-		.humidity = humidity,
-		.temperature_celsius = temperature_celsius,
-		.temperature_fahrenheit = temperature_fahrenheit,
-		.heat_index_celsius = to_celsius(heat_index_fahrenheit),
-		.heat_index_fahrenheit = heat_index_fahrenheit
-	};
-	return sample;
+	dht.humidity = humidity;
+	dht.temperature_celsius = temperature_celsius;
+	dht.temperature_fahrenheit = temperature_fahrenheit;
+	dht.heat_index_celsius = to_celsius(heat_index_fahrenheit);
+	dht.heat_index_fahrenheit = heat_index_fahrenheit;
 }
 
 
@@ -118,4 +132,12 @@ bool _DHT_IsReadValid(uint8_t buffer[DHT_N_BYTES])
 bool _DHT_IsDht11(uint8_t buffer[DHT_N_BYTES])
 {
 	return (buffer[IDX_BYTE_DRH] == 0 && buffer[IDX_BYTE_DTP] == 0);
+}
+
+
+float DHT_GetTemperature(bool in_celsius)
+{
+	if (in_celsius)
+		return dht.temperature_celsius;
+	return dht.temperature_fahrenheit;
 }

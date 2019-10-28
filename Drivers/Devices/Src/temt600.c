@@ -1,23 +1,28 @@
 #include "temt600.h"
 
+TEMT600_t temt600;
 
-void TEMT600_Init(TEMT600_HandleTypeDef *htemt)
+void TEMT600_Init()
 {
-	htemt->percentage_brightness = 0.0;
-	htemt->lux = 0;
-	htemt->raw_value = 0;
+	temt600.percentage_brightness = 0.0;
+	temt600.lux = 0.0;
+	temt600.raw_value = 0.0;
 }
 
-void TEMT600_CalculateLux(TEMT600_HandleTypeDef *htemt)
+void TEMT600_Sample()
 {
-	htemt->percentage_brightness = (htemt->raw_value/TEMT600_RESOLUTION)*100;
-	htemt->lux = (TEMT600_CURRENT(htemt->raw_value)/TEMT600_RESISTANCE_OHMS)*CURRENT_uA_ONE_LUX;
+	temt600.percentage_brightness = (temt600.raw_value/TEMT600_RESOLUTION)*100;
+	temt600.lux = (TEMT600_CURRENT(temt600.raw_value)/TEMT600_RESISTANCE_OHMS)*CURRENT_uA_ONE_LUX;
 }
 
 
-// Other
-void TEMT600_ToJson_Partial(char *buffer, TEMT600_HandleTypeDef *htemt)
+void TEMT600_ToJson_Partial(char *buffer)
 {
 	memset(buffer, 0, TEMT600_JSON_LENGTH);
-	snprintf(buffer, TEMT600_JSON_LENGTH, "\"lux\":%hu", htemt->lux);
+	snprintf(buffer, TEMT600_JSON_LENGTH, "\"TEMT6000\":{\"lux\":%hu}", temt600.lux);
+}
+
+void TEMT600_SetRawValue(uint16_t raw_value)
+{
+	temt600.raw_value = raw_value;
 }

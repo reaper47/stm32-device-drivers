@@ -104,7 +104,6 @@
 /********************************************************/
 
 #ifndef BME280_FLOAT_ENABLE
-
 #define BME280_FLOAT_ENABLE
 #endif
 
@@ -247,6 +246,7 @@
 #define BME280_MONITORING_WEATHER   0
 #define BME280_MONITORING_INDOOR    1
 #define BME280_JSON_LENGTH          127
+#define BME280_COMPONENTS           "Temperature, Pressure, Humidity\r\n"
 
 /*!
  * @brief Interface selection Enums
@@ -313,8 +313,6 @@ struct bme280_data
 
     /*! Compensated humidity */
     double humidity;
-
-    double altitude;
 };
 #else
 struct bme280_data

@@ -1544,14 +1544,14 @@ void BME280_ToJson_Partial(char *buffer)
 {
 	memset(buffer, 0, BME280_JSON_LENGTH);
 	snprintf(buffer, BME280_JSON_LENGTH,
-			 "\"BME280\":{\"T_C\":%.2f,\"T_F\":%.2f,\"RH\":%.2f,\"P\":%.2f}",
+			 "\"BME280\":{\"T_C\":%.2f,\"T_F\":%.2f,\"RH\":%.2f,\"P\":%.2f,\"P_kPa\":%.1f,\"P_mb\":%d}",
 			 comp_data.temperature, to_fahrenheit(comp_data.temperature),
-			 comp_data.humidity, comp_data.pressure);
+			 comp_data.humidity, comp_data.pressure, comp_data.pressure*0.001, (int)(round(comp_data.pressure*0.01)));
 }
 
 int8_t stream_sensor_data_forced_mode(UART_HandleTypeDef *huart)
 {
-	HAL_UART_Transmit(huart, (uint8_t*)"Temperature, Pressure, Humidity\r\n", (uint16_t) strlen("Temperature, Pressure, Humidity\r\n"), HAL_MAX_DELAY);
+	HAL_UART_Transmit(huart, (uint8_t*)BME280_COMPONENTS, (uint16_t) strlen(BME280_COMPONENTS), HAL_MAX_DELAY);
     set_weather_monitoring();
 
 	int8_t rslt;
@@ -1567,7 +1567,7 @@ int8_t stream_sensor_data_forced_mode(UART_HandleTypeDef *huart)
 
 int8_t stream_sensor_data_normal_mode(UART_HandleTypeDef *huart)
 {
-	HAL_UART_Transmit(huart, (uint8_t*)"Temperature, Pressure, Humidity\r\n", (uint16_t) strlen("Temperature, Pressure, Humidity\r\n"), HAL_MAX_DELAY);
+	HAL_UART_Transmit(huart, (uint8_t*)BME280_COMPONENTS, (uint16_t) strlen(BME280_COMPONENTS), HAL_MAX_DELAY);
 	set_weather_monitoring();
 	bme280_set_sensor_mode(BME280_NORMAL_MODE, &dev);
 
@@ -1588,7 +1588,7 @@ void print_sensor_data(UART_HandleTypeDef *huart)
 #ifdef BME280_FLOAT_ENABLE
 	snprintf(msg, 50, "%.2f, %.2f, %.2f\r\n", comp_data.temperature, comp_data.pressure, comp_data.humidity);
 #else
-	snprintf(msg, 50, "%ld, %ld, %ld\r\n",comp_data.temperature, comp_data.pressure, comp_data.humidity);
+	snprintf(msg, 50, "%ld, %ld, %ld\r\n", comp_data.temperature, comp_data.pressure, comp_data.humidity);
 #endif
 	HAL_UART_Transmit(huart, (uint8_t*)msg, (uint16_t) strlen(msg), HAL_MAX_DELAY);
 }
